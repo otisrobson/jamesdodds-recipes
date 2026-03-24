@@ -1,3 +1,4 @@
+
 name: Build macOS App
 
 on:
@@ -13,15 +14,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Install universal2 Python
+        run: |
+          curl -L -o python.pkg "https://www.python.org/ftp/python/3.12.8/python-3.12.8-macos11.pkg"
+          sudo installer -pkg python.pkg -target /
+          /usr/local/bin/python3.12 -m pip install pyinstaller
 
-      - name: Install PyInstaller
-        run: pip install pyinstaller
+      - name: Build universal .app bundle
+        run: |
+          /usr/local/bin/python3.12 -m PyInstaller \
+            --windowed \
+            --name "Shoplistgen" \
+            --target-arch universal2 \
+            shoplistgen_guiv3.py
 
-      - name: Build .app bundle
-        run: pyinstaller --windowed --name "Shoplistgen" shoplistgen_guiv3.py
+      - name: Verify architecture
+        run: |
+          file dist/Shoplistgen.app/Contents/MacOS/Shoplistgen
+          lipo -archs dist/Shoplistgen.app/Contents/MacOS/Shoplistgen
+
+      - name: Test x86_64 via Rosetta
+        run: |
+          arch -x86_64 dist/Shoplistgen.app/Contents/MacOS/Shoplistgen &
+          sleep 3 && kill $!
 
       - name: Create DMG
         run: |
