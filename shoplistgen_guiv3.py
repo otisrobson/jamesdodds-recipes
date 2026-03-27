@@ -6,6 +6,7 @@ Created on Sun Feb 22 23:49:55 2026
 @author: jamesdodds
 """
 
+import os
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
@@ -117,12 +118,15 @@ def generate_shopping_list_file():
 
     today_str = datetime.today().strftime("%d %m %Y")
     filename = f"Shopping_List_{today_str.replace(' ', '_')}.txt"
+    filepath = os.path.join(os.path.expanduser("~"), "Desktop", filename)
 
-    with open(filename, "w") as f:
-        f.write(f"Shopping List for {today_str}:\n")
-        for item in shopping_list:
-            f.write(f"- {item}\n")
-
-    messagebox.showinfo("Saved", f"Shopping list saved to '{filename}'")
+    try:
+        with open(filepath, "w") as f:
+            f.write(f"Shopping List for {today_str}:\n")
+            for item in shopping_list:
+                f.write(f"- {item}\n")
+        messagebox.showinfo("Saved", f"Shopping list saved to '{filepath}'")
+    except Exception as e:
+        messagebox.showerror("Save Failed", f"Could not save file:\n{e}")
 
 window.mainloop()
